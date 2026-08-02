@@ -9,7 +9,7 @@ flawed_ply = np.array([0, 0, 0.1, 0.5, 0.1, 0])
 defect_index = 2
 
 ####### METHOD ######
-def apply_defect(y, flawed_ply, defect_index):
+def apply_ondulation(y, flawed_ply, defect_index):
     alpha = 0.55
     counter = defect_index
     while counter < np.size(y,0):
@@ -20,5 +20,5 @@ def apply_defect(y, flawed_ply, defect_index):
     return y
 
 ####### OUTPUT ######
-result = apply_defect(y, flawed_ply, defect_index)
+result = apply_ondulation(y, flawed_ply, defect_index)
 print(result)

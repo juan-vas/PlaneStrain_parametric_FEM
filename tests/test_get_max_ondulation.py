@@ -32,6 +32,7 @@ def get_max_ondulation(x, gap_width):
 
 
 ############# OUTPUT #############
-y = get_max_ondulation(x, gap_width)
-result = y
-print(result)
+if __name__ == "__main__":
+    y = get_max_ondulation(x, gap_width)
+    result = y
+    print(result)

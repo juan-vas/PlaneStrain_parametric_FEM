@@ -151,7 +151,7 @@ function [xb, yb] = bezierEdgeC2scaled_return(x0, y0, y1, dir, C_gap, s_lo, s_hi
 
     % Control points iniciales (barriga)
     P0 = [x0,              y0];
-    P1 = [x0 + dir*c1,     y0];   % y'(0)=0
+    P1 = [x0 + dir*c1,     y0];   % primera derivada de y en 0 es 0
     P2 = [x0 + dir*c2,     y0];   % y''(0)=0
     P3 = [x0 + dir*c3,     y1];   % (mantenemos para no tocar la barriga)
 

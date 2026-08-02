@@ -2,13 +2,12 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-############# CLASSES ################
 
 
 
 ############# FUNCTIONS ##############
 
-def check_input_validity(number_of_plies, ply_index, defect_width):
+def check_input_validity(number_of_plies, ply_index, defect_width, defect_type : int):
     if not isinstance(number_of_plies, int):
         print("Unvalid Input: Number of plies needs to be an integer")
         sys.exit()
@@ -29,9 +28,12 @@ def check_input_validity(number_of_plies, ply_index, defect_width):
     if not (defect_width < 5.0 and defect_width > 0.0):
         print("Unvalid Input: Defect width needs to be 0 < x < 5 mm")
         sys.exit()
+
+    if not ((defect_type == 0) or (defect_type == 1)):
+        print("Unvalid Input: Unvalid defect type code")
+        sys.exit()
     
     print("Inputs are valid")
-
 
 def get_max_ondulation(x, gap_width):
     beta = 0.08
@@ -48,7 +50,7 @@ def get_max_ondulation(x, gap_width):
     result = y * amplitude
     return result
 
-def apply_defect(y, flawed_ply, defect_index):
+def apply_ondulation(y, flawed_ply, defect_index):
     alpha = 0.55
     counter = defect_index
     while counter < np.size(y,0):
@@ -58,8 +60,7 @@ def apply_defect(y, flawed_ply, defect_index):
         counter += 1
     return y
 
-
-def plot_geometry(x, y):
+def plot_geometry(x, y, x_left = None, y_left = None, x_right = None, y_right = None):
     
     fig, ax = plt.subplots()
 
@@ -70,6 +71,11 @@ def plot_geometry(x, y):
 
     ax.plot([0, 0], [np.min(y), np.max(y)], color='k')
     ax.plot([np.max(x), np.max(x)], [np.min(y), np.max(y)], color='k')
+
+    if x_left is not None:
+        ax.plot(x_left, y_left, color = 'k')
+        ax.plot(x_right, y_right, color = "k")
+
     ax.set_ylim(-0.1 * np.max(y), 1.1 * np.max(y))
     ax.set_aspect('equal', adjustable='datalim')
 
