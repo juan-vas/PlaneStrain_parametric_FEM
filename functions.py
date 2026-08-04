@@ -2,10 +2,10 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+import os
+from datetime import datetime
 
-
-
-############# FUNCTIONS ##############
+############# FUNCTIONS: GEOMETRY ##############
 
 def check_input_validity(number_of_plies, ply_index, defect_width, defect_type : int):
     if not isinstance(number_of_plies, int):
@@ -82,4 +82,63 @@ def plot_geometry(x, y, x_left = None, y_left = None, x_right = None, y_right = 
     ax.set_title('xxx')
     ax.set_xlabel('x [mm]')
     ax.set_ylabel('y [mm]')
-    plt.show()
+    # plt.show()
+    return fig, ax
+
+############## FUNCTIONS: WRITE BDF FILE ########################
+
+def name_folder(input = None):
+    if input == None:
+        today_object = datetime.now()
+        creation_date = today_object.strftime("%y%m%d%H%M")
+    else:
+        creation_date = str(input)
+    return creation_date
+
+def make_directory(input : str, workspace :str):
+    directory_name = workspace + input
+
+    # Create the directory
+    try:
+        os.mkdir(directory_name)
+        print(f"Directory '{directory_name}' created successfully.")
+    except FileExistsError:
+        print(f"Directory '{directory_name}' already exists.")
+    except PermissionError:
+        print(f"Permission denied: Unable to create '{directory_name}'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    output = directory_name
+    return output
+
+def collect_geometry(new_x : list, new_y : list, collection : list):
+    id = len(collection) + 1
+    i = 0
+    for element in new_x:
+        entry = "GRID,%d,0,%.10g,%.10g,0.0"%(id, new_x[i], new_y[i])
+        entry = format_nastran_line(entry) + "\n"
+        collection.append(entry)
+        id += 1
+        i += 1
+
+    return collection
+
+def format_nastran_line(input_string: str) -> str:
+    # Split exactly by commas
+    parts = input_string.split(",")
+    
+    formatted_parts = []
+    for part in parts:
+        # Cut down to 8 characters maximum if it is too long
+        trimmed = part[:8]
+        # Pad with trailing spaces to ensure it is exactly 8 characters wide
+        padded = trimmed.ljust(8)
+        formatted_parts.append(padded)
+        
+    # Join everything back together with zero spaces or commas between fields
+    return "".join(formatted_parts)
+
+def write_bdf(filename, collection):
+    with open(filename, "w", encoding="utf-8") as file:
+        file.writelines(collection)

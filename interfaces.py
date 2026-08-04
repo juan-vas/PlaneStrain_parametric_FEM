@@ -1,7 +1,12 @@
 import functions as f
 import gap_functions as gap_f
 import numpy as np
+import matplotlib.pyplot as plt
 
+def prepare_directory(workspace : str):
+    folder_name = f.name_folder()
+    target_directory = f.make_directory(folder_name, workspace)
+    return target_directory
 
 class Defect:
     def __init__(self, ply_with_defect_index: int, defect_width: float, defect_type: int):
@@ -168,24 +173,8 @@ def apply_gap(Laminate : Laminate, Gap : Gap):
     Gap.x_bezier_right = x_bezier_right
     Gap.y_bezier_right = y_bezier_right
 
-    # Check for mistakes:
-    print(Gap.gap_limit_left)           # ok
-    print(Gap.gap_limit_rigth)          # ok
-    print(delta)                        # ok
-    print(Gap.x_intersection_left)      # ok
-    print(Gap.x_intersection_right)     # ok
-    print(Gap.y_intersection_left_down) # ok
-    print(Gap.y_intersection_left_up)   # ok
-    print(Gap.y_intersection_right_down)# ok
-    print(Gap.y_intersection_right_up)  # ok
-
-
-
-
-
-
-
-def plot_geometry(Laminate:Laminate):
+def plot_geometry(Laminate:Laminate, target_directory):
+    plot_filename = target_directory + r"\laminate_geometry.png"
     x = Laminate.x
     y = Laminate.y
     defect = Laminate.defect
@@ -195,4 +184,25 @@ def plot_geometry(Laminate:Laminate):
         x_right = defect.x_bezier_right
         y_right = defect.y_bezier_right
 
-    f.plot_geometry(x, y, x_left, y_left, x_right, y_right)
+        fig, ax = f.plot_geometry(x, y, x_left, y_left, x_right, y_right)
+    else: 
+        fig,ax = f.plot_geometry(x,y)
+
+    plt.savefig(plot_filename)    
+    # plt.show()
+
+def write_bdf(Laminate: Laminate, directory_name):
+    filename = directory_name + r"\input_analysis.bdf"
+    collection = []
+    x = Laminate.x
+    y = Laminate.y
+    i = 0
+    for elem in y:
+        length_y = len(y)
+        collection = f.collect_geometry(x, y[i], collection)
+        i +=1
+        if i == length_y:
+            i = 0
+    f.write_bdf(filename, collection)
+    print("The .bdf file has been successfully created in " + filename)
+    
