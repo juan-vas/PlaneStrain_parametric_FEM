@@ -8,7 +8,7 @@ defect_width = 0.5
 # Defect Type
 ## Ondulation   : 0
 ## Gap          : 1
-defect_type = 0
+defect_type = 1
 
 
 ############### METHOD #################
@@ -20,5 +20,6 @@ defect = i.create_defect(ply_with_defect_index, defect_width, defect_type)
 laminate = i.Laminate(number_of_plies, defect)
 flawed_laminate = i.apply_ondulation(laminate, defect)
 if defect.defect_type == 1: i.apply_gap(flawed_laminate, defect)
-i.plot_geometry(flawed_laminate, target_directory)
-i.write_bdf(flawed_laminate, directory_name= target_directory)
+ax = i.plot_geometry(flawed_laminate, target_directory)
+i.create_auxiliary_curves(flawed_laminate, target_directory, ax)
+i.write_bdf(flawed_laminate, target_directory= target_directory)

@@ -2,11 +2,31 @@ import functions as f
 import gap_functions as gap_f
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 def prepare_directory(workspace : str):
     folder_name = f.name_folder()
     target_directory = f.make_directory(folder_name, workspace)
     return target_directory
+
+class Material:
+    def __init__(self):
+        self.mid = 1
+        self.E_modulus = 7.0e4
+        self.G_modulus = 2.6e4
+        self.nu = 0.3
+        self.rho = 0.0
+
+class PBeam:
+    def __init__(self):
+        self.pid = 1
+        self.b = 0.1
+        self.h = 0.1
+        self.area = self.b * self.h
+        self.moment_of_inertia_1 = (self.b * self.h ** 3) / 12
+        self.moment_of_inertia_2 = (self.h * self.b ** 3) / 12
+        self.torsional_constant_J = (self.b * self.h ** 3 + self.h * self.b**3) / 3
+        self.mid = 1
 
 class Defect:
     def __init__(self, ply_with_defect_index: int, defect_width: float, defect_type: int):
@@ -65,6 +85,8 @@ class Laminate:
         ply_heigths = np.linspace(0, self.number_of_plies * self.ply_thickness, self.number_of_plies + 1)
         self.y = np.repeat(ply_heigths[:, np.newaxis], self.number_of_points, axis=1)
         self.defect = defect
+        self.material = Material()
+        self.pbeam = PBeam()
 
 def create_defect(ply_with_defect_index : int, 
                   defect_width : float,
@@ -190,19 +212,43 @@ def plot_geometry(Laminate:Laminate, target_directory):
 
     plt.savefig(plot_filename)    
     # plt.show()
+    return ax
 
-def write_bdf(Laminate: Laminate, directory_name):
-    filename = directory_name + r"\input_analysis.bdf"
-    collection = []
+def create_auxiliary_curves(Laminate : Laminate, target_directory, ax : Axes):
+    plot_filename = target_directory + r"\auxiliary_geometry.png"
     x = Laminate.x
     y = Laminate.y
-    i = 0
+    # defect = Laminate.defect
+    # if isinstance(Laminate.defect, Gap):
+    #     x_left = defect.x_bezier_left
+    #     y_left = defect.y_bezier_left
+    #     x_right = defect.x_bezier_right
+    #     y_right = defect.y_bezier_right
+    auxiliary_curves = f.create_auxiliary_curves(x, y)
+    f.plot_auxiliary_curves(x, auxiliary_curves, ax)
+    plt.savefig(plot_filename)
+    
+
+def write_bdf(Laminate: Laminate, target_directory):
+    filename = target_directory + r"\input_analysis.bdf"
+    grid_collection = []
+    cbeam_collection = []
+    x = Laminate.x
+    y = Laminate.y
+    material = Laminate.material
+    pbeam = Laminate.pbeam
+    material_collection = f.prepare_nastran_material(material.mid, material.E_modulus, material.G_modulus, material.nu, material.rho)
+    pbam_collection = f.prepare_nastran_pbeam(pbeam.mid, pbeam.area, pbeam.moment_of_inertia_1, pbeam.moment_of_inertia_2, pbeam.torsional_constant_J)
+    total_number_of_nodes = 0
+    counter = 0
     for elem in y:
-        length_y = len(y)
-        collection = f.collect_geometry(x, y[i], collection)
-        i +=1
-        if i == length_y:
-            i = 0
+        num_nodes_per_curve = len(elem)
+        cbeam_collection = f.prepare_nastran_cbeam(new_x= x, collection= cbeam_collection, node_count= total_number_of_nodes)
+        grid_collection = f.prepare_nastran_grid(x, y[counter], grid_collection)
+        total_number_of_nodes = total_number_of_nodes + num_nodes_per_curve
+        counter +=1
+    collection = material_collection + pbam_collection + grid_collection + cbeam_collection
+    collection = f.format_nastran_line(collection)
     f.write_bdf(filename, collection)
     print("The .bdf file has been successfully created in " + filename)
     
