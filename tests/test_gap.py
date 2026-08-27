@@ -26,6 +26,24 @@ class Gap(Defect):
         self.num_points_bezier = 600
         self.kmin = 0.35
         self.max_iterations = 28
+        self.k_common = None
+
+        self.x_bezier_left = None
+        self.y_bezier_left = None
+        self.x_bezier_right = None
+        self.y_bezier_right = None
+
+        # Calculate the points of intersection
+        self.center = None
+        self.gap_limit_left = None
+        self.gap_limit_rigth = None
+        self.x_intersection_left = None
+        self.x_intersection_right = None
+
+        self.y_intersection_left_down = None
+        self.y_intersection_left_up = None
+        self.y_intersection_right_down = None
+        self.y_intersection_right_up = None
 
 ########### OUTPUT #############
 gap = Gap(ply_with_defect_index, defect_width, defect_type)

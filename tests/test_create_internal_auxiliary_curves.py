@@ -6,7 +6,7 @@ y = np.repeat(y, 6, axis=0)
 y = np.transpose(y)
 
 ############# METHOD ################
-def create_auxiliary_curves(x, y):
+def create_internal_auxiliary_curves(x, y):
     counter = 0
     number_of_curves = y.shape[0]
     auxiliary_curves = y[0]
@@ -24,5 +24,5 @@ def create_auxiliary_curves(x, y):
 
 
 ########### OUTPUT ##################
-result = create_auxiliary_curves(x, y)
+result = create_internal_auxiliary_curves(x, y)
 print(result)

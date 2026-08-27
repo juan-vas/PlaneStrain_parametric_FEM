@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from datetime import datetime
+from matplotlib.axes import Axes
 
 ############# FUNCTIONS: CREATE FOLDER ###########
 def name_folder(input = None):
@@ -111,7 +112,7 @@ def plot_geometry(x, y, x_left = None, y_left = None, x_right = None, y_right = 
     # plt.show()
     return fig, ax
 
-def create_auxiliary_curves(x, y):
+def create_internal_auxiliary_curves(x, y):
     counter = 0
     number_of_curves = y.shape[0]
     auxiliary_curves = y[0]
@@ -134,6 +135,30 @@ def plot_auxiliary_curves(x, y_auxiliary, ax):
         ax.plot(x, y_auxiliary[counter], color = "k", lw = linewidth)
         counter += 1
 
+def create_auxiliary_gap_curves(ax: Axes, x, ply_with_defect_index, ply_thickness, x_intersection_left, x_intersection_right):
+    height_base = (ply_with_defect_index - 1) * ply_thickness
+    height_1 = height_base + ply_thickness * 1/4
+    height_2 = height_base + ply_thickness * 2/3
+    x_left = x[(x < x_intersection_left)]
+    x_right = x[(x > x_intersection_right)]
+    y1_left = np.ones(np.size(x_left)) * height_1
+    y1_right = np.ones(np.size(x_right)) * height_1
+    y2_left = np.ones(np.size(x_left)) * height_2
+    y2_right = np.ones(np.size(x_right)) * height_2
+    ax.plot(x_left, y1_left, color = "k", linewidth = 0.3)
+    ax.plot(x_right, y1_right, color = "k", linewidth = 0.3)
+    ax.plot(x_left, y2_left, color = "k", linewidth = 0.3)
+    ax.plot(x_right, y2_right, color = "k", linewidth = 0.3)
+
+def plot_line_between_bezier(ax, x_left : np.ndarray, y_left : np.ndarray, x_right : np.ndarray, y_right :np.ndarray):
+    index_point_1 = np.argmax(x_left)
+    index_point_2 = np.argmin(x_right)
+    x_point_1 = x_left[index_point_1]
+    y_point_1 = y_left[index_point_1]
+    x_point_2 = x_right[index_point_2]
+    y_point_2 = y_right[index_point_2]
+    ax.plot([x_point_1, x_point_2], [y_point_1, y_point_2], color = "k", linewidth = 0.3)
+
 ############## FUNCTIONS: WRITE BDF FILE #########################
 def prepare_nastran_material(mid, e_modulus, g_modulus, nu, rho):
     material_collection = []
@@ -143,7 +168,7 @@ def prepare_nastran_material(mid, e_modulus, g_modulus, nu, rho):
 
 def prepare_nastran_pbeam(mid, area, inertia_1, inertia_2, torsional_constant_J):
     format_check = [area, inertia_1, inertia_2, torsional_constant_J]
-    entry = "PBEAM,1"
+    entry = "PBEAM,1,%d"%(mid)
     for element in format_check:
         check = ",%.10g"%(element)
         if len(check) > 8:

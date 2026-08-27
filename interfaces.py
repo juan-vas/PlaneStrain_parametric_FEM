@@ -53,6 +53,7 @@ class Gap(Defect):
         self.num_points_bezier = 600
         self.kmin = 0.35
         self.max_iterations = 28
+        self.k_common = None
 
         self.x_bezier_left = None
         self.y_bezier_left = None
@@ -161,7 +162,7 @@ def apply_gap(Laminate : Laminate, Gap : Gap):
                                  return_frac= Gap.return_frac,
                                  eps_end_frac= Gap.eps_end_frac)
     # Force common k
-    k_common = min(k_left, k_right)
+    Gap.k_common = min(k_left, k_right)
 
     # Generate both gap borders using k_common
     x_bezier_left, y_bezier_left = gap_f.generate_spline_with_fixed_k(x0= Gap.x_intersection_left,
@@ -169,7 +170,7 @@ def apply_gap(Laminate : Laminate, Gap : Gap):
                                                        y1= Gap.y_intersection_left_up,
                                                        dir= +1,
                                                        c_gap= Gap.c_gap,
-                                                       k_fixed= k_common,
+                                                       k_fixed= Gap.k_common,
                                                        smooth= Gap.smooth,
                                                        return_frac= Gap.return_frac,
                                                        eps_end_frac= Gap.eps_end_frac,
@@ -182,7 +183,7 @@ def apply_gap(Laminate : Laminate, Gap : Gap):
                                                        y1= Gap.y_intersection_right_up,
                                                        dir= -1,
                                                        c_gap= Gap.c_gap,
-                                                       k_fixed= k_common,
+                                                       k_fixed= Gap.k_common,
                                                        smooth= Gap.smooth,
                                                        return_frac= Gap.return_frac,
                                                        eps_end_frac= Gap.eps_end_frac,
@@ -218,27 +219,67 @@ def create_auxiliary_curves(Laminate : Laminate, target_directory, ax : Axes):
     plot_filename = target_directory + r"\auxiliary_geometry.png"
     x = Laminate.x
     y = Laminate.y
-    # defect = Laminate.defect
-    # if isinstance(Laminate.defect, Gap):
-    #     x_left = defect.x_bezier_left
-    #     y_left = defect.y_bezier_left
-    #     x_right = defect.x_bezier_right
-    #     y_right = defect.y_bezier_right
-    auxiliary_curves = f.create_auxiliary_curves(x, y)
+    defect = Laminate.defect
+    auxiliary_curves = f.create_internal_auxiliary_curves(x, y)
+    if isinstance(defect, Gap):
+        ply_with_defect_index = defect.ply_with_defect_index
+        auxiliary_curves = np.delete(auxiliary_curves, [(ply_with_defect_index - 1) * 2, (ply_with_defect_index - 1) * 2 + 1], axis=0)
     f.plot_auxiliary_curves(x, auxiliary_curves, ax)
+
+    if isinstance(defect, Gap):
+        f.create_auxiliary_gap_curves(ax, x, defect.ply_with_defect_index, Laminate.ply_thickness, defect.x_intersection_left, defect.x_intersection_right)
+        height_base = (defect.ply_with_defect_index - 1) * Laminate.ply_thickness
+        height_1 = height_base + Laminate.ply_thickness * 1/4
+        height_2 = height_base + Laminate.ply_thickness * 2/3
+        y_up_vec_internal = np.ones(np.size(x)) * height_2
+        x_internal_bezier_left, y_internal_bezier_left = gap_f.generate_spline_with_fixed_k(x0= defect.x_intersection_left,
+                                                                  y0= height_1,
+                                                                  y1= height_2,
+                                                                  dir= +1,
+                                                                  c_gap= 0.5 * defect.c_gap,
+                                                                  k_fixed= defect.k_common,
+                                                                  smooth= defect.smooth,
+                                                                  return_frac= defect.return_frac,
+                                                                  eps_end_frac= defect.eps_end_frac,
+                                                                  xgrid= Laminate.x,
+                                                                  y_up_vec= y_up_vec_internal,
+                                                                  npt= defect.num_points_bezier)
+        x_internal_bezier_right, y_internal_bezier_right = gap_f.generate_spline_with_fixed_k(x0= defect.x_intersection_right,
+                                                                  y0= height_1,
+                                                                  y1= height_2,
+                                                                  dir= -1,
+                                                                  c_gap= 0.5 * defect.c_gap,
+                                                                  k_fixed= defect.k_common,
+                                                                  smooth= defect.smooth,
+                                                                  return_frac= defect.return_frac,
+                                                                  eps_end_frac= defect.eps_end_frac,
+                                                                  xgrid= Laminate.x,
+                                                                  y_up_vec= y_up_vec_internal,
+                                                                  npt= defect.num_points_bezier)
+        ax.plot(x_internal_bezier_left, y_internal_bezier_left, color = "k", linewidth = 0.3)
+        ax.plot(x_internal_bezier_right, y_internal_bezier_right, color = "k", linewidth = 0.3)
+        f.plot_line_between_bezier(ax, defect.x_bezier_left, defect.y_bezier_left, defect.x_bezier_right, defect.y_bezier_right)
+
+        
     plt.savefig(plot_filename)
-    
 
 def write_bdf(Laminate: Laminate, target_directory):
     filename = target_directory + r"\input_analysis.bdf"
     grid_collection = []
     cbeam_collection = []
+
+    # Extracting Information from the Laminate
     x = Laminate.x
     y = Laminate.y
+    defect = Laminate.defect
     material = Laminate.material
     pbeam = Laminate.pbeam
+
+    # Prepare material and pbeam data
     material_collection = f.prepare_nastran_material(material.mid, material.E_modulus, material.G_modulus, material.nu, material.rho)
     pbam_collection = f.prepare_nastran_pbeam(pbeam.mid, pbeam.area, pbeam.moment_of_inertia_1, pbeam.moment_of_inertia_2, pbeam.torsional_constant_J)
+
+    # Prepate grid and cbeam data (no gap info)
     total_number_of_nodes = 0
     counter = 0
     for elem in y:
@@ -247,6 +288,25 @@ def write_bdf(Laminate: Laminate, target_directory):
         grid_collection = f.prepare_nastran_grid(x, y[counter], grid_collection)
         total_number_of_nodes = total_number_of_nodes + num_nodes_per_curve
         counter +=1
+
+    # Prepare grid and cbeam data corresponding to the gap
+    if isinstance(Laminate.defect, Gap):
+        x_left = defect.x_bezier_left
+        y_left = defect.y_bezier_left
+        x_right = defect.x_bezier_right
+        y_right = defect.y_bezier_right
+
+        num_nodes_per_curve = len(x_left)
+        cbeam_collection = f.prepare_nastran_cbeam(x_left, cbeam_collection, total_number_of_nodes)
+        grid_collection = f.prepare_nastran_grid(x_left, y_left, grid_collection)
+        total_number_of_nodes = total_number_of_nodes + num_nodes_per_curve
+
+        num_nodes_per_curve = len(x_right)
+        cbeam_collection = f.prepare_nastran_cbeam(x_right, cbeam_collection, total_number_of_nodes)
+        grid_collection = f.prepare_nastran_grid(x_right, y_right, grid_collection)
+        total_number_of_nodes = total_number_of_nodes + num_nodes_per_curve
+
+    # Collect all info, format it and write bdf
     collection = material_collection + pbam_collection + grid_collection + cbeam_collection
     collection = f.format_nastran_line(collection)
     f.write_bdf(filename, collection)

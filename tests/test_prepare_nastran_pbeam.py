@@ -8,7 +8,7 @@ j_torsion = 6.66666667e-5
 ########## METHOD ###########
 def prepare_nastran_pbeam(mid, area, inertia_1, inertia_2, torsional_constant_J):
     format_check = [area, inertia_1, inertia_2, torsional_constant_J]
-    entry = "PBEAM,1"
+    entry = "PBEAM,1,%d"%(mid)
     for element in format_check:
         check = ",%.10g"%(element)
         if len(check) > 8:

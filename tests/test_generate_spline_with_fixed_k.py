@@ -1,6 +1,7 @@
 from test_generate_spline import generate_spline
 import numpy as np
 from test_get_max_ondulation import get_max_ondulation
+import matplotlib.pyplot as plt
 
 ################## INPUT #########################
 x0 = 0.135
@@ -17,7 +18,7 @@ y_up_vec = get_max_ondulation(xgrid, 0.5) + 0.5
 npt = 600
 
 ################# METHOD ##########################
-def generate_with_fixed_k(x0, y0, y1, dir,
+def generate_spline_with_fixed_k(x0, y0, y1, dir,
                           c_gap, k_fixed, smooth,
                           return_frac, eps_end_frac,
                           xgrid, y_up_vec, npt):
@@ -35,7 +36,10 @@ def generate_with_fixed_k(x0, y0, y1, dir,
 
 ############ OUTPUT ###################
 if __name__ == "__main__":
-    xb, yb = generate_with_fixed_k(x0, y0, y1, dir, c_gap,
+    xb, yb = generate_spline_with_fixed_k(x0, y0, y1, dir, c_gap,
                         k_fixed, smooth, return_frac,
                         eps_end_frac, xgrid, y_up_vec,
                         npt)
+    fig, ax = plt.subplots()
+    ax.plot(xb, yb)
+    plt.show()
