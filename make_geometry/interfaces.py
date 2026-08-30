@@ -1,13 +1,8 @@
-import functions as f
-import gap_functions as gap_f
+from make_geometry import functions as f
+from make_geometry import gap_functions as gap_f
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-
-def prepare_directory(workspace : str):
-    folder_name = f.name_folder()
-    target_directory = f.make_directory(folder_name, workspace)
-    return target_directory
 
 class Material:
     def __init__(self):

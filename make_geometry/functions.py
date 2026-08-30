@@ -1,38 +1,9 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-from datetime import datetime
 from matplotlib.axes import Axes
 
-############# FUNCTIONS: CREATE FOLDER ###########
-def name_folder(input = None):
-    if input == None:
-        today_object = datetime.now()
-        folder_name = today_object.strftime("%y%m%d%H%M")
-    else:
-        folder_name = str(input)
-    return folder_name
-
-def make_directory(input : str, workspace :str):
-    directory_name = workspace + input
-
-    # Create the directory
-    try:
-        os.mkdir(directory_name)
-        print(f"Directory '{directory_name}' created successfully.")
-    except FileExistsError:
-        print(f"Directory '{directory_name}' already exists.")
-    except PermissionError:
-        print(f"Permission denied: Unable to create '{directory_name}'.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    
-    output = directory_name
-    return output
-
 ############# FUNCTIONS: GEOMETRY ##############
-
 def check_input_validity(number_of_plies, ply_index, defect_width, defect_type : int):
     if not isinstance(number_of_plies, int):
         print("Unvalid Input: Number of plies needs to be an integer")

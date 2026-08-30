@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.interpolate import PchipInterpolator
-from functions import get_max_ondulation
+from make_geometry.functions import get_max_ondulation
 import matplotlib.pyplot as plt
 
 
