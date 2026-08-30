@@ -1,5 +1,6 @@
 from make_geometry import functions as f
 from make_geometry import interfaces as i
+import numpy as np
 
 ################ INPUT #################
 number_of_plies = 8
@@ -19,4 +20,6 @@ def make_geometry(target_directory, number_of_plies, ply_with_defect_index, defe
     if defect.defect_type == 1: i.apply_gap(flawed_laminate, defect)
     ax = i.plot_geometry(flawed_laminate, target_directory)
     i.create_auxiliary_curves(flawed_laminate, target_directory, ax)
-    i.write_bdf(flawed_laminate, target_directory= target_directory)
+    return flawed_laminate
+
+############## OUTPUT ##################
