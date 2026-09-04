@@ -80,6 +80,7 @@ class Laminate:
         self.x = np.linspace(0, self.ply_width, self.number_of_points)
         ply_heigths = np.linspace(0, self.number_of_plies * self.ply_thickness, self.number_of_plies + 1)
         self.y = np.repeat(ply_heigths[:, np.newaxis], self.number_of_points, axis=1)
+        self.y_auxiliary = None
         self.defect = defect
         self.material = Material()
         self.pbeam = PBeam()
@@ -219,6 +220,7 @@ def create_auxiliary_curves(Laminate : Laminate, target_directory, ax : Axes):
     if isinstance(defect, Gap):
         ply_with_defect_index = defect.ply_with_defect_index
         auxiliary_curves = np.delete(auxiliary_curves, [(ply_with_defect_index - 1) * 2, (ply_with_defect_index - 1) * 2 + 1], axis=0)
+    Laminate.y_auxiliary = auxiliary_curves
     f.plot_auxiliary_curves(x, auxiliary_curves, ax)
 
     if isinstance(defect, Gap):
@@ -257,4 +259,3 @@ def create_auxiliary_curves(Laminate : Laminate, target_directory, ax : Axes):
 
         
     plt.savefig(plot_filename)
-

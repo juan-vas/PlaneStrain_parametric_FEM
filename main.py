@@ -2,8 +2,8 @@ import create_directory as cd
 import choose_laminate as cl
 from make_geometry.make_geometry import make_geometry 
 from make_geometry.interfaces import Laminate
-import write_bdf as w
-import numpy as np
+from write_bdf.write_bdf import write_bdf
+
 ################ INPUT #################
 workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\03 BDF files\file_"
 
@@ -22,10 +22,9 @@ defect_width = 0.5
 ## Gap          : 1
 defect_type = 0
 
-
 ############### METHOD #################
 target_directory = cd.prepare_directory(workspace)
 laminate_sequence = cl.choose_laminate(laminate_choice)
 number_of_plies = len(laminate_sequence)
 flawed_laminate = make_geometry(target_directory, number_of_plies, ply_with_defect_index, defect_width, defect_type)
-w.write_bdf(flawed_laminate, target_directory)
+write_bdf(flawed_laminate, target_directory, laminate_sequence)
