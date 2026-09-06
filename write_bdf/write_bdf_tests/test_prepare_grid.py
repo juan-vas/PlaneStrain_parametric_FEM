@@ -12,7 +12,7 @@ df = pd.DataFrame(data= node_index,
 def prepare_grid(node_index : pd.DataFrame):
     grid_collection = []
     for row in node_index.itertuples():
-        entry = "GRID,%d,0,%.10g,%.10g,0.0"%(row.node_id, row.x, row.y)
+        entry = "GRID,%d,0,%.7f,%.7f,0.0"%(row.node_id, row.x, row.y)
         grid_collection.append(entry)
     return grid_collection
 

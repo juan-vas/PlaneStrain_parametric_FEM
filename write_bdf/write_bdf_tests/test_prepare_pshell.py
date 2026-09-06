@@ -25,7 +25,7 @@ def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type 
     counter = 1
     for ply in laminate_sequence:
         entry_1 = 'PSHELL,%d,%d,%.6g'%(counter + 100, materal_sequence[counter - 1] ,ply_thickness)
-        entry_2 = '$HNAME PROP %d "PLY_%02d_2D"'%(counter + 100, counter)
+        entry_2 = '$HMNAME PROP %d "PLY_%02d_2D"'%(counter + 100, counter)
         pshell_collection.append(entry_1)
         pshell_collection.append(entry_2)
         counter += 1

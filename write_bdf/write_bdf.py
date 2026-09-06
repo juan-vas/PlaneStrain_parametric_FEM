@@ -12,9 +12,10 @@ def write_bdf(Laminate: Laminate, target_directory, laminate_sequence : list):
     node_index = i.prepare_node_index(Laminate)
     grid_collection = i.prepare_grid(node_index)
     set_collection = i.prepare_set(node_index)
+    loaddef_collection = i.prepare_loaddef()
     spc_collection = i.prepare_spc()
     cquad_collection = i.prepare_cquad4(node_index, ply_index)
-    collection = material_collection + pshell_collection + grid_collection + set_collection + spc_collection + cquad_collection
+    collection = material_collection + pshell_collection + grid_collection + set_collection + loaddef_collection + spc_collection + cquad_collection
     collection = i.format_nastran_line(collection)
     i.write_bdf(filename, collection)
     print("The .bdf file has been successfully created in " + filename)

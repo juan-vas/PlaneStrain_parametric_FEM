@@ -31,8 +31,8 @@ def create_ply_index(laminate_sequence):
         bottom_curve_sequence.append(base_curve)
         top_curve_sequence.append(base_curve + auxiliary_curves_per_ply + 1)
         base_curve = base_curve + auxiliary_curves_per_ply + 1
-        counter += 1
         property_sequence.append(counter + 100)
+        counter += 1
         match ply:
             case 0:
                 material_sequence.append(1001)
@@ -59,7 +59,7 @@ def prepare_case_control():
     case_control_collection = []
     case_control_collection.append('$HMNAME LOADSTEP %d "loadstep1"\n'%(1))
     case_control_collection.append('\n')
-    case_control_collection.append('SUBCASE 1\n')
+    case_control_collection.append('SUBCASE = 1\n')
     case_control_collection.append('    LABEL loadstep1\n')
     case_control_collection.append('    ANALYSIS STATICS\n')
     case_control_collection.append('    SPC = %d\n'%(SID_SPC))
@@ -74,20 +74,20 @@ def prepare_case_control():
 def prepare_nastran_material():
     material_collection = []
     material_collection.append('MAT1, 1, %.9g, , %.9g\n'%(4660, 0.35))
-    material_collection.append('$HNAME MAT 1 "RESIN_8552_2D"')
+    material_collection.append('$HMNAME MAT 1 "RESIN_8552_2D"')
 
     material_collection.append('$ === UD 8552/AS4 (RTD, seco) | MAT8 por orientación ===')
-    material_collection.append('MAT8,1001,127300,9240,0.302,4830.0,4830.0,3600.0,1.6e-09')
-    material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    material_collection.append('MAT8,1001,127300,9240,0.302,4830.0,4830.0,3600.0,1.6e-9')
+    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
     material_collection.append('$HMNAME MAT 1001 "UD_8552_AS4_0deg"')
-    material_collection.append('MAT8,1002,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-09')
-    material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    material_collection.append('MAT8,1002,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
+    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
     material_collection.append('$HMNAME MAT 1002 "UD_8552_AS4_+45deg"')
-    material_collection.append('MAT8,1003,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-09')
-    material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    material_collection.append('MAT8,1003,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
+    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
     material_collection.append('$HMNAME MAT 1003 "UD_8552_AS4_-45deg"')
-    material_collection.append('MAT8,1004,9240.0,127300.0,0.0219205,4830.0,4830.0,3600.0,1.6e-09')
-    material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    material_collection.append('MAT8,1004,9240.0,127300,2.19e-2,4830.0,4830.0,3600.0,1.6e-9')
+    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
     material_collection.append('$HMNAME MAT 1004 "UD_8552_AS4_90deg"')
     return material_collection
 
@@ -112,7 +112,7 @@ def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type 
     counter = 1
     for ply in laminate_sequence:
         entry_1 = 'PSHELL,%d,%d,%.6g'%(counter + 100, materal_sequence[counter - 1] ,ply_thickness)
-        entry_2 = '$HNAME PROP %d "PLY_%02d_2D"'%(counter + 100, counter)
+        entry_2 = '$HMNAME PROP %d "PLY_%02d_2D"'%(counter + 100, counter)
         pshell_collection.append(entry_1)
         pshell_collection.append(entry_2)
         counter += 1
@@ -131,7 +131,7 @@ def prepare_node_index(new_x : list, new_y : list, node_index : list, curve_id :
 def prepare_grid(node_index : pd.DataFrame):
     grid_collection = []
     for row in node_index.itertuples():
-        entry = "GRID,%d,0,%.10g,%.10g,0.0"%(row.node_id, row.x, row.y)
+        entry = "GRID,%d,0,%.7f,%.7f,0.0"%(row.node_id, row.x, row.y)
         grid_collection.append(entry)
     return grid_collection
 
@@ -156,13 +156,18 @@ def prepare_set(node_index : pd.DataFrame, set_id: list):
     set_collection.append(d)
     return set_collection
 
+def prepare_loaddef():
+    loaddef_collection = ['LOADDEF,900040,SPCD,900040']
+    return loaddef_collection
+
 def prepare_spc(spc_id, set_id, constraint, displacement):
     spc_collection = []
     if displacement != 0.0:
-        entry = 'SPCD,%d,%d,%d,%.6g\n+,GSET'%(spc_id, set_id, constraint, displacement)
+        entry = 'SPCD,%d,%d,%d,%.6g'%(spc_id, set_id, constraint, displacement)
     else:
-        entry = 'SPC,%d,%d,%d,0.0\n+,GSET'%(spc_id, set_id, constraint)
+        entry = 'SPC,%d,%d,%d,0.0'%(spc_id, set_id, constraint)
     spc_collection.append(entry)
+    spc_collection.append('+,GSET')
     return spc_collection
 
 def prepare_cquad4(curve_a : pd.DataFrame, curve_b : pd.DataFrame, cquad_collection : list, pid : int):
@@ -201,8 +206,8 @@ def format_nastran_line(collection: list) -> list:
         
         formatted_parts = []
         for part in parts:
-            # Cut down to 8 characters maximum if it is too long
-            trimmed = part[:8]
+            # Cut down to 7 characters maximum if it is too long
+            trimmed = part[:7]
             # Pad with trailing spaces to ensure it is exactly 8 characters wide
             padded = trimmed.ljust(8)
             formatted_parts.append(padded)

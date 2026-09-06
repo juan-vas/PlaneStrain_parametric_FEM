@@ -102,10 +102,14 @@ def prepare_set(node_index : pd.DataFrame):
 
     return set_collection
 
+def prepare_loaddef():
+    loaddef_collection = f.prepare_loaddef()
+    return loaddef_collection
+
 def prepare_spc():
     spc_collection_z = f.prepare_spc(900099, 900100, 3, 0.0)
     spc_collection_y = f.prepare_spc(900099, 900102, 2, 0.0)
-    spc_collection_x = f.prepare_spc(900090,900103, 1, 0.0)
+    spc_collection_x = f.prepare_spc(900099,900103, 1, 0.0)
     spc_collection_disp = f.prepare_spc(900040, 900103, 1, 0.12)
     spc_collection = spc_collection_z + spc_collection_y + spc_collection_x + spc_collection_disp
     return spc_collection
