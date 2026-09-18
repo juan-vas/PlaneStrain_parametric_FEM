@@ -2,24 +2,16 @@ from make_geometry import functions as f
 from make_geometry import interfaces as i
 import numpy as np
 
-################ INPUT #################
-number_of_plies = 8
-ply_with_defect_index = 4
-defect_width = 0.5
-# Defect Type
-## Ondulation   : 0
-## Gap          : 1
-defect_type = 0
-
 ############### METHOD #################
 def make_geometry(target_directory, number_of_plies, ply_with_defect_index, defect_width, defect_type):
-    f.check_input_validity(number_of_plies, ply_with_defect_index, defect_width, defect_type)
+    i.check_input_validity(number_of_plies, ply_with_defect_index, defect_width, defect_type)
     defect = i.create_defect(ply_with_defect_index, defect_width, defect_type)
     laminate = i.Laminate(number_of_plies, defect)
-    flawed_laminate = i.apply_ondulation(laminate, defect)
-    if defect.defect_type == 1: i.apply_gap(flawed_laminate, defect)
-    ax = i.plot_geometry(flawed_laminate, target_directory)
-    i.create_auxiliary_curves(flawed_laminate, target_directory, ax)
-    return flawed_laminate
+    if defect_width != 0:
+        laminate = i.apply_ondulation(laminate, defect)
+        if defect.defect_type == 1: i.apply_gap(laminate, defect)
+    ax = i.plot_geometry(laminate, target_directory)
+    i.create_auxiliary_curves(laminate, target_directory, ax)
+    return laminate
 
 ############## OUTPUT ##################

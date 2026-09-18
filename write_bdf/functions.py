@@ -2,19 +2,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-### Functions of the write_bdf package ###
-
-def create_material_inventory():
-    material_code = [1, 1001, 1002, 1003, 1004]
-    material_name = ['RESIN_8552_2D', 'UD_8552_AS4_0deg', 'UD_8552_AS4_+45deg', 'UD_8552_AS4_-45deg', 'UD_8552_AS4_90deg']
-    fiber_angle = [np.nan, 0, 45, -45, 90]
-    material_inventory = pd.DataFrame({
-        'mid': material_code,
-        'name': material_name,
-        'fiber_angle': fiber_angle
-    }).astype({'fiber_angle' : 'Int16'})
-    return material_inventory
-
 def create_ply_index(laminate_sequence):
     ply_id = []
     mid = [1, 1001, 1002, 1003, 1004]
@@ -91,7 +78,7 @@ def prepare_nastran_material():
     material_collection.append('$HMNAME MAT 1004 "UD_8552_AS4_90deg"')
     return material_collection
 
-def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type = int):
+def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type : int):
     pshell_collection = []
     materal_sequence = []
 
@@ -131,7 +118,7 @@ def prepare_node_index(new_x : list, new_y : list, node_index : list, curve_id :
 def prepare_grid(node_index : pd.DataFrame):
     grid_collection = []
     for row in node_index.itertuples():
-        entry = "GRID,%d,0,%.7f,%.7f,0.0"%(row.node_id, row.x, row.y)
+        entry = "GRID,%d,0,%.7f,%.7f,0.0,0"%(row.node_id, row.x, row.y)
         grid_collection.append(entry)
     return grid_collection
 
@@ -151,7 +138,8 @@ def prepare_set(node_index : pd.DataFrame, set_id: list):
     for row in node_index.itertuples():
         d = d + '%d,'%(row.node_id) 
         if (i + 1) % 8 == 0:
-            d = d + '\n+,'
+            set_collection.append(d)
+            d = '+,'
         i += 1
     set_collection.append(d)
     return set_collection
@@ -184,16 +172,6 @@ def prepare_cquad4(curve_a : pd.DataFrame, curve_b : pd.DataFrame, cquad_collect
         counter += 1
         cquad_collection.append(entry)
     return cquad_collection
-
-def prepare_nastran_cbeam(new_x : list, collection : list, node_count : int):
-    eid = len(collection) + 1
-    node_id = node_count 
-    for element in new_x[:-1]:
-        entry = "CBEAM,%d,1,%d,%d,0,0,1"%(eid, node_id + 1, node_id + 2)
-        collection.append(entry)
-        node_id += 1
-        eid += 1
-    return collection
 
 def format_nastran_line(collection: list) -> list:
     formatted_lines = []

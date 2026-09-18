@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
 
-def prepare_directory(workspace : str):
-    folder_name = name_folder()
+def create_directory(workspace : str, label : str):
+    folder_name = name_folder(label)
     target_directory = make_directory(folder_name, workspace)
     return target_directory
 

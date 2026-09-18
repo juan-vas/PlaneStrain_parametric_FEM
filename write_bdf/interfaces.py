@@ -2,10 +2,6 @@ from write_bdf import functions as f
 from make_geometry.interfaces import Laminate, Gap
 import pandas as pd
 
-def create_material_inventory():
-    material_inventory = f.create_material_inventory()
-    return material_inventory
-
 def create_ply_index(laminate_sequence : list):
     ply_index = f.create_ply_index(laminate_sequence)
     return ply_index
@@ -14,14 +10,7 @@ def prepare_case_control():
     case_control_collection = f.prepare_case_control()
     return case_control_collection
 
-def prepare_material(ply_index : pd.DataFrame):
-    material_code = [1, 1001, 1002, 1003, 1004]
-    material_name = ['RESIN_8552_2D', 'UD_8552_AS4_0deg', 'UD_8552_AS4_+45deg', 'UD_8552_AS4_-45deg', 'UD_8552_AS4_90deg']
-    fiber_angle = [None, 0, 45, -45, 90]
-    material_inventory = pd.DataFrame({
-        'name': material_name,
-        'fiber_angle': fiber_angle
-    }, index= material_code)
+def prepare_material():
     material_collection = f.prepare_nastran_material()
     return material_collection
 
@@ -77,7 +66,7 @@ def prepare_node_index(Laminate: Laminate):
 
     return node_index
 
-def  prepare_grid(node_index : pd.DataFrame):
+def prepare_grid(node_index : pd.DataFrame):
     grid_collection = f.prepare_grid(node_index)
     return grid_collection
 
@@ -108,10 +97,11 @@ def prepare_loaddef():
 
 def prepare_spc():
     spc_collection_z = f.prepare_spc(900099, 900100, 3, 0.0)
+    spc_collection_x_left = f.prepare_spc(900099, 900101,1, 0.0)
     spc_collection_y = f.prepare_spc(900099, 900102, 2, 0.0)
-    spc_collection_x = f.prepare_spc(900099,900103, 1, 0.0)
+    spc_collection_x_right = f.prepare_spc(900099,900103, 1, 0.0)
     spc_collection_disp = f.prepare_spc(900040, 900103, 1, 0.12)
-    spc_collection = spc_collection_z + spc_collection_y + spc_collection_x + spc_collection_disp
+    spc_collection = spc_collection_z + spc_collection_x_left + spc_collection_y + spc_collection_x_right + spc_collection_disp
     return spc_collection
 
 def prepare_cquad4(node_index : pd.DataFrame, ply_index : pd.DataFrame):

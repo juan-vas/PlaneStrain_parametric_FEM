@@ -6,7 +6,8 @@ n = 100
 laminate_width = 5.0
 x = np.linspace(0, laminate_width, n)
 y = np.ones(n)
-gap_width = 0.5
+gap_width = 2.2
+ply_thickness = 0.125
 
 # result = y
 # print(result)
@@ -15,7 +16,7 @@ gap_width = 0.5
 
 ############# METHOD #############
 def get_max_ondulation(x, gap_width):
-    beta = 0.08
+    beta = 0.05
     amplitude = gap_width * beta
 
     laminate_width = np.max(x)
@@ -34,5 +35,6 @@ def get_max_ondulation(x, gap_width):
 ############# OUTPUT #############
 if __name__ == "__main__":
     y = get_max_ondulation(x, gap_width)
+    # result = max(y)
     result = y
     print(result)

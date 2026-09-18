@@ -26,7 +26,8 @@ def prepare_set(node_index : pd.DataFrame, set_id: list):
     for row in node_index.itertuples():
         d = d + '%d,'%(row.node_id) 
         if (i + 1) % 8 == 0:
-            d = d + '\n+,'
+            set_collection.append(d)
+            d = '+,'
         i += 1
     set_collection.append(d)
     return set_collection

@@ -22,7 +22,7 @@ def check_input_validity(number_of_plies, ply_index, defect_width, defect_type :
         "greater than 1 and less than the total number of plies")
         sys.exit()
 
-    if not (defect_width < 5.0 and defect_width > 0.0):
+    if not (defect_width < 5.0 and defect_width >= 0.0):
         print("Unvalid Input: Defect width needs to be 0 < x < 5 mm")
         sys.exit()
 
@@ -33,7 +33,7 @@ def check_input_validity(number_of_plies, ply_index, defect_width, defect_type :
     print("Inputs are valid")
 
 def get_max_ondulation(x, gap_width):
-    beta = 0.08
+    beta = 0.05
     amplitude = gap_width * beta
 
     laminate_width = np.max(x)
@@ -77,7 +77,7 @@ def plot_geometry(x, y, x_left = None, y_left = None, x_right = None, y_right = 
     ax.set_ylim(-0.1 * np.max(y), 1.1 * np.max(y))
     ax.set_aspect('equal', adjustable='datalim')
 
-    ax.set_title('xxx')
+    # ax.set_title('xxx')
     ax.set_xlabel('x [mm]')
     ax.set_ylabel('y [mm]')
     # plt.show()

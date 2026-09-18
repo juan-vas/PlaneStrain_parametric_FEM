@@ -4,25 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
-class Material:
-    def __init__(self):
-        self.mid = 1
-        self.E_modulus = 7.0e4
-        self.G_modulus = 2.6e4
-        self.nu = 0.3
-        self.rho = 0.0
-
-class PBeam:
-    def __init__(self):
-        self.pid = 1
-        self.b = 0.1
-        self.h = 0.1
-        self.area = self.b * self.h
-        self.moment_of_inertia_1 = (self.b * self.h ** 3) / 12
-        self.moment_of_inertia_2 = (self.h * self.b ** 3) / 12
-        self.torsional_constant_J = (self.b * self.h ** 3 + self.h * self.b**3) / 3
-        self.mid = 1
-
 class Defect:
     def __init__(self, ply_with_defect_index: int, defect_width: float, defect_type: int):
         self.ply_with_defect_index = ply_with_defect_index
@@ -76,15 +57,16 @@ class Laminate:
         self.number_of_plies = number_of_plies
         self.ply_thickness = 0.125
         self.ply_width = 5
-        self.number_of_points = 500
+        self.number_of_points = 300
         self.x = np.linspace(0, self.ply_width, self.number_of_points)
         ply_heigths = np.linspace(0, self.number_of_plies * self.ply_thickness, self.number_of_plies + 1)
         self.y = np.repeat(ply_heigths[:, np.newaxis], self.number_of_points, axis=1)
         self.y_auxiliary = None
         self.defect = defect
-        self.material = Material()
-        self.pbeam = PBeam()
-
+       
+def check_input_validity(number_of_plies, ply_with_defect_index, defect_width, defect_type):
+    f.check_input_validity(number_of_plies, ply_with_defect_index, defect_width, defect_type)
+    
 def create_defect(ply_with_defect_index : int, 
                   defect_width : float,
                   defect_index : int) -> Defect:
@@ -96,10 +78,13 @@ def create_defect(ply_with_defect_index : int,
 def apply_ondulation(Laminate: Laminate, Defect : Defect):
     x = Laminate.x
     y = Laminate.y
+    ply_thickness = Laminate.ply_thickness
     gap_width = Defect.defect_width
-    defect_index = Defect.ply_with_defect_index
+    ply_with_defect_index = Defect.ply_with_defect_index
     flawed_ply = f.get_max_ondulation(x, gap_width)
-    flawed_laminate =f.apply_ondulation(y, flawed_ply, defect_index)
+    if max(flawed_ply) > (ply_thickness * 0.95): 
+        raise ValueError('Maximum ondulation for convex ondulation invalid')
+    flawed_laminate =f.apply_ondulation(y, flawed_ply, ply_with_defect_index)
     Laminate.y = flawed_laminate
     return Laminate
     
@@ -259,3 +244,4 @@ def create_auxiliary_curves(Laminate : Laminate, target_directory, ax : Axes):
 
         
     plt.savefig(plot_filename)
+    plt.close()
