@@ -20,3 +20,4 @@ def write_bdf(Laminate: Laminate, target_directory, laminate_sequence : list):
     i.write_bdf(filename, collection)
     print("The .bdf file has been successfully created in " + filename)
     return filename
+

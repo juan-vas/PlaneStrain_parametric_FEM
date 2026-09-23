@@ -4,9 +4,11 @@ from make_geometry.make_geometry import make_geometry
 from make_geometry.interfaces import Laminate
 from write_bdf.write_bdf import write_bdf
 import run_optistruct as ro
+from start_postprocess.start_postprocess import start_postprocess
 
 ################ INPUT #################
-workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\05 Virtual Experiments\\"
+# workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\05 Virtual Experiments\\"
+workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\06 Results\\"
 optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.bat'
 
 # 1) QI-8   : [45/0/-45/90]s
@@ -18,7 +20,7 @@ optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.
 laminate_choice = 1
 
 ply_with_defect_index = 4
-defect_width = 0.1
+defect_width = 0.8
 # Defect Type
 ## Ondulation   : 0
 ## Gap          : 1
@@ -34,6 +36,7 @@ filename = write_bdf(flawed_laminate, target_directory, laminate_sequence)
 ro.run_optistruct_analysis(bdf_file_path= filename,
                            output_dir= target_directory,
                            optistruct_exec= optistruct_exec)
+unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
+
 
 ############# OUTPUT ################
-print(experiment_label)

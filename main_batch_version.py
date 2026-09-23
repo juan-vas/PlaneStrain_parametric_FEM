@@ -5,9 +5,10 @@ from make_geometry.interfaces import Laminate
 from write_bdf.write_bdf import write_bdf
 import shutil
 import run_optistruct as ro
+from start_postprocess.start_postprocess import start_postprocess
 
 ################ INPUT #################
-workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\05 Virtual Experiments\\"
+workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\06 Results\\"
 optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.bat'
 
 # 1) QI-8   : [45/0/-45/90]s
@@ -33,6 +34,8 @@ def create_batch(laminate_choice, defect_type, ply_with_defect_index, defect_wid
     ro.run_optistruct_analysis(bdf_file_path= filename,
                                output_dir= target_directory,
                                optistruct_exec= optistruct_exec)
+    unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
+
 
 def delete_directory(target_directory):
 # Deletes the folder and everything inside it
