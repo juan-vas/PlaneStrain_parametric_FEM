@@ -10,8 +10,8 @@ def prepare_case_control():
     case_control_collection = f.prepare_case_control()
     return case_control_collection
 
-def prepare_material():
-    material_collection = f.prepare_nastran_material()
+def prepare_material(material_index : pd.DataFrame):
+    material_collection = f.prepare_nastran_materials(material_index)
     return material_collection
 
 def prepare_pshell(Laminate: Laminate, laminate_sequence : list):

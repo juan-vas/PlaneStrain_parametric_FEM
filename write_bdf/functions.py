@@ -58,25 +58,34 @@ def prepare_case_control():
     case_control_collection.append('BEGIN BULK\n')
     return case_control_collection
 
-def prepare_nastran_material():
+def prepare_nastran_materials(material_index : pd.DataFrame):
     material_collection = []
-    material_collection.append('MAT1, 1, %.9g, , %.9g\n'%(4660, 0.35))
-    material_collection.append('$HMNAME MAT 1 "RESIN_8552_2D"')
-
-    material_collection.append('$ === UD 8552/AS4 (RTD, seco) | MAT8 por orientación ===')
-    material_collection.append('MAT8,1001,127300,9240,0.302,4830.0,4830.0,3600.0,1.6e-9')
-    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    material_collection.append('$HMNAME MAT 1001 "UD_8552_AS4_0deg"')
-    material_collection.append('MAT8,1002,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
-    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    material_collection.append('$HMNAME MAT 1002 "UD_8552_AS4_+45deg"')
-    material_collection.append('MAT8,1003,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
-    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    material_collection.append('$HMNAME MAT 1003 "UD_8552_AS4_-45deg"')
-    material_collection.append('MAT8,1004,9240.0,127300,2.19e-2,4830.0,4830.0,3600.0,1.6e-9')
-    # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    material_collection.append('$HMNAME MAT 1004 "UD_8552_AS4_90deg"')
+    bdf_line_1 = material_index['material_line_1'].tolist()
+    bdf_line_2 = material_index['material_line_2'].tolist()
+    i = 0
+    while i < len(bdf_line_1):
+        material_collection.append(bdf_line_1[i])
+        material_collection.append(bdf_line_2[i])
+        i += 1
     return material_collection
+    # material_collection = []
+    # material_collection.append('MAT1, 1, %.9g, , %.9g\n'%(4660, 0.35))
+    # material_collection.append('$HMNAME MAT 1 "RESIN_8552_2D"')
+
+    # material_collection.append('$ === UD 8552/AS4 (RTD, seco) | MAT8 por orientación ===')
+    # material_collection.append('MAT8,1001,127300,9240,0.302,4830.0,4830.0,3600.0,1.6e-9')
+    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    # material_collection.append('$HMNAME MAT 1001 "UD_8552_AS4_0deg"')
+    # material_collection.append('MAT8,1002,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
+    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    # material_collection.append('$HMNAME MAT 1002 "UD_8552_AS4_+45deg"')
+    # material_collection.append('MAT8,1003,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
+    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    # material_collection.append('$HMNAME MAT 1003 "UD_8552_AS4_-45deg"')
+    # material_collection.append('MAT8,1004,9240.0,127300,2.19e-2,4830.0,4830.0,3600.0,1.6e-9')
+    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
+    # material_collection.append('$HMNAME MAT 1004 "UD_8552_AS4_90deg"')
+    # return material_collection
 
 def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type : int):
     pshell_collection = []

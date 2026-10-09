@@ -1,13 +1,15 @@
 from make_geometry.interfaces import Laminate
 from write_bdf import interfaces as i
+import pandas as pd
 
 def write_bdf(Laminate: Laminate, target_directory, laminate_sequence : list):
     filename = target_directory + r"\input_analysis.bdf"
-    
+
     ply_index = i.create_ply_index(laminate_sequence)
     case_control_collection = i.prepare_case_control()
     i.write_bdf(filename, case_control_collection)
-    material_collection = i.prepare_material()
+    material_index = pd.read_csv("material_db.csv")
+    material_collection = i.prepare_material(material_index)
     pshell_collection = i.prepare_pshell(Laminate, laminate_sequence)
     node_index = i.prepare_node_index(Laminate)
     grid_collection = i.prepare_grid(node_index)

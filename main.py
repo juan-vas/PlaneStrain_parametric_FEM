@@ -2,14 +2,18 @@ import create_directory as cd
 import choose_laminate as cl
 from make_geometry.make_geometry import make_geometry 
 from make_geometry.interfaces import Laminate
+from create_material.create_material import create_material
+from create_material.interfaces import Material
 from write_bdf.write_bdf import write_bdf
 import run_optistruct as ro
 from start_postprocess.start_postprocess import start_postprocess
+import materials as m
 
 ################ INPUT #################
 # workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\05 Virtual Experiments\\"
-workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\06 Results\\"
+workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\09 Fiber Volume Fraction\\"
 optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.bat'
+material = m.hexply_8552_ud
 
 # 1) QI-8   : [45/0/-45/90]s
 # 2) QI-16  : [45/0/-45/90/0/-45/0/45]s
@@ -20,7 +24,7 @@ optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.
 laminate_choice = 1
 
 ply_with_defect_index = 4
-defect_width = 0.8
+defect_width = 1.0
 # Defect Type
 ## Ondulation   : 0
 ## Gap          : 1
@@ -32,11 +36,12 @@ target_directory = cd.create_directory(workspace, experiment_label)
 laminate_sequence = cl.choose_laminate(laminate_choice)
 number_of_plies = len(laminate_sequence)
 flawed_laminate = make_geometry(target_directory, number_of_plies, ply_with_defect_index, defect_width, defect_type)
+base_material = create_material(material_dict= material, ply_thickness=flawed_laminate.ply_thickness)
 filename = write_bdf(flawed_laminate, target_directory, laminate_sequence)
-ro.run_optistruct_analysis(bdf_file_path= filename,
-                           output_dir= target_directory,
-                           optistruct_exec= optistruct_exec)
-unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
+# ro.run_optistruct_analysis(bdf_file_path= filename,
+#                            output_dir= target_directory,
+#                            optistruct_exec= optistruct_exec)
+# unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
 
 
 ############# OUTPUT ################
