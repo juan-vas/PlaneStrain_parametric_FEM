@@ -1,6 +1,8 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from create_material.interfaces import Material
+import copy
 
 def create_ply_index(laminate_sequence):
     ply_id = []
@@ -68,32 +70,13 @@ def prepare_nastran_materials(material_index : pd.DataFrame):
         material_collection.append(bdf_line_2[i])
         i += 1
     return material_collection
-    # material_collection = []
-    # material_collection.append('MAT1, 1, %.9g, , %.9g\n'%(4660, 0.35))
-    # material_collection.append('$HMNAME MAT 1 "RESIN_8552_2D"')
 
-    # material_collection.append('$ === UD 8552/AS4 (RTD, seco) | MAT8 por orientación ===')
-    # material_collection.append('MAT8,1001,127300,9240,0.302,4830.0,4830.0,3600.0,1.6e-9')
-    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    # material_collection.append('$HMNAME MAT 1001 "UD_8552_AS4_0deg"')
-    # material_collection.append('MAT8,1002,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
-    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    # material_collection.append('$HMNAME MAT 1002 "UD_8552_AS4_+45deg"')
-    # material_collection.append('MAT8,1003,12563.8,12563.8,0.3006,6100.1,4830.0,3600.0,1.6e-9')
-    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    # material_collection.append('$HMNAME MAT 1003 "UD_8552_AS4_-45deg"')
-    # material_collection.append('MAT8,1004,9240.0,127300,2.19e-2,4830.0,4830.0,3600.0,1.6e-9')
-    # # material_collection.append('+ , , , , , , , ,1996.0,1398.0,63.9,268.0,74.0')
-    # material_collection.append('$HMNAME MAT 1004 "UD_8552_AS4_90deg"')
-    # return material_collection
-
-def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type : int):
-    pshell_collection = []
+def create_property_index(laminate_sequence : list, ply_thickness: float, defect_type: int):
+    property_index = pd.DataFrame(columns=['pid', 'name', 'mid', 'shell_thickness'])
     materal_sequence = []
-
     if defect_type == 1:
-        pshell_collection.append('PSHELL,2,1,%.6g'%(ply_thickness))
-        pshell_collection.append('$HMNAME PROP 2 "GAP_RESIN_2D"')
+        new_property = [1, 'GAP_RESIN', 1, ply_thickness]
+        property_index.loc[len(property_index)] = new_property
     for ply in laminate_sequence:
         match ply:
             case 0:
@@ -107,11 +90,49 @@ def prepare_pshell(laminate_sequence : list, ply_thickness : float, defect_type 
 
     counter = 1
     for ply in laminate_sequence:
-        entry_1 = 'PSHELL,%d,%d,%.6g'%(counter + 100, materal_sequence[counter - 1] ,ply_thickness)
-        entry_2 = '$HMNAME PROP %d "PLY_%02d_2D"'%(counter + 100, counter)
+        new_property = [counter + 100, f"PLY_{counter:02d}", materal_sequence[counter - 1], ply_thickness]
+        property_index.loc[len(property_index)] = new_property
+        counter += 1
+    return property_index
+
+def update_material(material : Material, element_index : pd.DataFrame, 
+                    ply_index : pd.DataFrame, material_index : pd.DataFrame,
+                    property_index : pd.DataFrame, ply_thickness
+                    ):
+    fvf_original = material.fvf
+    df_orientations = ply_index[['fiber_angle', 'pid']]
+    element_index = pd.merge(
+        left= element_index,
+        right= df_orientations,
+        how= 'inner',
+        on= 'pid'
+    )
+
+    pid = 201 # Property code for modified property
+    mid = 2001
+    for row in element_index.itertuples():
+        if (element_index.loc[row[0], 'fvf'] < fvf_original) & (int(element_index.loc[row[0], 'pid']) < 200):
+            new_fvf = element_index.loc[row[0], 'fvf']
+            fiber_angle = int(element_index.loc[row[0], 'fiber_angle'])
+            new_material = copy.copy(material)
+            new_material.modify_by_fvf(new_fvf)
+            new_material.mid = mid
+            new_material.get_rotated_ply(fiber_angle, ply_thickness, material_index)
+            new_property_name = f"PLY_{fiber_angle:02d}_deg FVF_{new_fvf}"
+            new_property = [pid, new_property_name, new_material.mid, ply_thickness]
+            property_index.loc[len(property_index)] = new_property
+            element_index.loc[element_index[(element_index['fvf'] == new_fvf) & (element_index['fiber_angle']==fiber_angle)].index, 'pid'] = pid
+            pid += 1
+            mid += 1
+    return element_index
+
+def prepare_pshell(property_index: pd.DataFrame):
+    pshell_collection = []
+    for row in property_index.itertuples():
+        entry_1 = f"PSHELL,{row.pid},{row.mid},{row.shell_thickness}"
+        entry_2 = f'$HMNAME PROP {row.pid} "{row.name}"'
         pshell_collection.append(entry_1)
         pshell_collection.append(entry_2)
-        counter += 1
     return pshell_collection
 
 def prepare_node_index(new_x : list, new_y : list, node_index : list, curve_id : int, is_boundary : bool):
@@ -167,8 +188,8 @@ def prepare_spc(spc_id, set_id, constraint, displacement):
     spc_collection.append('+,GSET')
     return spc_collection
 
-def prepare_cquad4(curve_a : pd.DataFrame, curve_b : pd.DataFrame, cquad_collection : list, pid : int):
-    element_id = len(cquad_collection) + 1
+def create_element_index(curve_a : pd.DataFrame, curve_b : pd.DataFrame, element_index : pd.DataFrame, pid : int, ply_thickness, fvf_0):
+    element_id = len(element_index) + 1
     number_of_nodes_per_curve = curve_a.shape[0]
     counter = 0
     while counter < number_of_nodes_per_curve - 1:
@@ -176,9 +197,29 @@ def prepare_cquad4(curve_a : pd.DataFrame, curve_b : pd.DataFrame, cquad_collect
         b = curve_a.loc[counter + 1, 'node_id']
         c = curve_b.loc[counter + 1, 'node_id']
         d = curve_b.loc[counter, 'node_id']
-        entry = 'CQUAD4,%d,%d,%d,%d,%d,%d'%(element_id, pid, a, b, c, d)
+
+        # Calculate local thickness 
+        y_a = float(curve_a.loc[counter, 'y'])
+        y_b = float(curve_a.loc[counter + 1, 'y'])
+        y_c = float(curve_b.loc[counter + 1, 'y'])
+        y_d = float(curve_b.loc[counter, 'y'])
+
+        local_thickness = ( (y_d - y_a) + (y_c - y_b) ) / 2
+        
+        # Calculate local fiber volume fraction
+        fvf = fvf_0 * ply_thickness / 3 / local_thickness
+        fvf = round(fvf, 3)
+
+        db_entry = [element_id, pid, a, b, c, d, fvf]
+        element_index.loc[len(element_index)] = db_entry
+
         element_id += 1
         counter += 1
+
+def prepare_cquad4(element_index : pd.DataFrame):
+    cquad_collection = []
+    for row in element_index.itertuples():
+        entry = f"CQUAD4,{row.element_id},{row.pid},{row.node_a},{row.node_b},{row.node_c},{row.node_d}"
         cquad_collection.append(entry)
     return cquad_collection
 

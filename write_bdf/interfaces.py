@@ -1,6 +1,7 @@
 from write_bdf import functions as f
 from make_geometry.interfaces import Laminate, Gap
 import pandas as pd
+from create_material.interfaces import Material
 
 def create_ply_index(laminate_sequence : list):
     ply_index = f.create_ply_index(laminate_sequence)
@@ -14,13 +15,23 @@ def prepare_material(material_index : pd.DataFrame):
     material_collection = f.prepare_nastran_materials(material_index)
     return material_collection
 
-def prepare_pshell(Laminate: Laminate, laminate_sequence : list):
+def create_property_index(laminate_sequence: list, Laminate : Laminate):
     ply_thickness = Laminate.ply_thickness
     defect = Laminate.defect
     if isinstance(defect, Gap):
         defect_type = 1
     else: defect_type = 0
-    pshell_collection = f.prepare_pshell(laminate_sequence, ply_thickness, defect_type)
+    property_index = f.create_property_index(laminate_sequence, ply_thickness, defect_type)
+    return property_index
+
+def update_material(material : Material, element_index: pd.DataFrame, ply_index: pd.DataFrame,
+                    material_index: pd.DataFrame, property_index:pd.DataFrame, ply_thickness):
+    element_index = f.update_material(material, element_index, ply_index,
+                                      material_index, property_index, ply_thickness)
+    return element_index
+
+def prepare_pshell(property_index : pd.DataFrame):
+    pshell_collection = f.prepare_pshell(property_index)
     return pshell_collection
 
 def prepare_node_index(Laminate: Laminate):
@@ -104,8 +115,9 @@ def prepare_spc():
     spc_collection = spc_collection_z + spc_collection_x_left + spc_collection_y + spc_collection_x_right + spc_collection_disp
     return spc_collection
 
-def prepare_cquad4(node_index : pd.DataFrame, ply_index : pd.DataFrame):
-    cquad_collection = []
+def create_element_index(node_index : pd.DataFrame, ply_index : pd.DataFrame, laminate : Laminate, fvf_0):
+    element_index= pd.DataFrame(columns=["element_id", "pid", "node_a", "node_b", "node_c", "node_d", "fvf"])
+    ply_thickness = laminate.ply_thickness
     number_of_curves = node_index['curve_id'].max()
     counter = 0
     while counter < number_of_curves:
@@ -115,8 +127,16 @@ def prepare_cquad4(node_index : pd.DataFrame, ply_index : pd.DataFrame):
         if curve_a.loc[0,'is_boundary'] == True:
             corresponding_ply_id = ply_index[ply_index['bottom_curve_id'] == bottom_curve_id].reset_index(drop= True)
             pid = corresponding_ply_id.loc[0,'pid']
-        cquad_collection = f.prepare_cquad4(curve_a, curve_b, cquad_collection, pid)
+        f.create_element_index(curve_a, curve_b, element_index, pid, ply_thickness, fvf_0)
         counter += 1
+    element_index = element_index.astype({'element_id' : int, 'pid' : int, 'node_a' : int, 'node_b' : int, 
+                'node_c' : int, 'node_d' : int, 'fvf' : float
+                })
+    #element_index.to_csv('sample_element_index.csv', index=False)
+    return element_index
+
+def prepare_cquad4(element_index : pd.DataFrame):
+    cquad_collection = f.prepare_cquad4(element_index)
     return cquad_collection
 
 def format_nastran_line(collection):

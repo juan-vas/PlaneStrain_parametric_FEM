@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
-
+#
 def get_mat1_card(mid, stiffness, name):
     card_type = "MAT1"
     material_line_1 = f"{card_type},{mid},{stiffness},0,0.35"
@@ -10,8 +10,9 @@ def get_mat1_card(mid, stiffness, name):
 
 def get_mat_8_card(mid : int, e1, e2, nu12, g12, g1z, g2z, rho, orientation : int, name):
     name = f'{name}_{orientation:02d} deg'
+    arbitrary_e2 = 9240
     card_type = "MAT8"
-    material_line_1 = f"{card_type},{mid},{e1},{e2},{nu12},{g12},{g1z},{g2z},{rho}"
+    material_line_1 = f"{card_type},{mid},{e1:.1f},{arbitrary_e2:.1f},{nu12:.3f},{g12:.1f},{g1z:.1f},{g2z:.1f},{rho:.2g}"
     material_line_2 = f'$HMNAME MAT {mid} "{name}"'
     material_db_entry = [mid, card_type, orientation, material_line_1, material_line_2]
     return material_db_entry

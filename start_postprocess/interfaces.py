@@ -15,7 +15,7 @@ def calculate_stiffness(Laminate : Laminate, experiment : dict, applied_force : 
     shell_thickness = Laminate.ply_thickness
     area = laminate_height * shell_thickness
     ply_width = Laminate.ply_width
-    displacement = 1.2
+    displacement = ply_width * 0.02
     strain = displacement / ply_width
     f.calculate_stiffness(experiment, applied_force, area, strain, displacement)
 

@@ -2,7 +2,7 @@ import create_directory as cd
 import choose_laminate as cl
 from make_geometry.make_geometry import make_geometry 
 from make_geometry.interfaces import Laminate
-from create_material.create_material import create_material
+from create_material.create_material_main import create_material
 from create_material.interfaces import Material
 from write_bdf.write_bdf import write_bdf
 import run_optistruct as ro
@@ -23,8 +23,8 @@ material = m.hexply_8552_ud
 # 6) Spread-tow (16): [45/0/-45/90/-45/0/45/90]s
 laminate_choice = 1
 
-ply_with_defect_index = 4
-defect_width = 1.0
+ply_with_defect_index = 3
+defect_width = 0.0
 # Defect Type
 ## Ondulation   : 0
 ## Gap          : 1
@@ -37,11 +37,11 @@ laminate_sequence = cl.choose_laminate(laminate_choice)
 number_of_plies = len(laminate_sequence)
 flawed_laminate = make_geometry(target_directory, number_of_plies, ply_with_defect_index, defect_width, defect_type)
 base_material = create_material(material_dict= material, ply_thickness=flawed_laminate.ply_thickness)
-filename = write_bdf(flawed_laminate, target_directory, laminate_sequence)
-# ro.run_optistruct_analysis(bdf_file_path= filename,
-#                            output_dir= target_directory,
-#                            optistruct_exec= optistruct_exec)
-# unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
+filename = write_bdf(flawed_laminate, target_directory, laminate_sequence, base_material)
+ro.run_optistruct_analysis(bdf_file_path= filename,
+                           output_dir= target_directory,
+                           optistruct_exec= optistruct_exec)
+unified_results = start_postprocess(flawed_laminate, target_directory, laminate_choice, experiment_label)
 
 
 ############# OUTPUT ################

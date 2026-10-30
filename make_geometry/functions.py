@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-
+#
 ############# FUNCTIONS: GEOMETRY ##############
 def check_input_validity(number_of_plies, ply_index, defect_width, defect_type : int):
     if not isinstance(number_of_plies, int):

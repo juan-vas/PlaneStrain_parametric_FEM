@@ -1,8 +1,8 @@
-from create_material import functions as f
 import pandas as pd
+from create_material import functions as f
 import numpy as np
 from numpy.linalg import inv
-
+#
 class Material:
     def __init__(self, material_dict : dict):
         self.mid = 1000
@@ -52,4 +52,29 @@ class Material:
                                           orientation,
                                           name= self.name)
         material_db.loc[len(material_db)] = database_entry
-        
+
+    def modify_by_fvf(self, fvf):
+        # Apply Rules of mixtures:
+        e_fiber_1 = (self.e1 - self.e_m * (1 - self.fvf)) / self.fvf
+        self.e1 = e_fiber_1 * fvf + self.e_m * (1 - fvf)
+
+        # Apply Inverse Rule of mixtures for transversal modulus:
+        e_fiber_2 = 1 / ( ( (1 / self.e2) - ((1 - self.fvf) / self.e_m) ) * (1 / self.fvf) )
+        self.e2 = 1 / ( (self.fvf / e_fiber_2) + ((1 - self.fvf) / self.e_m) )
+
+        # Apply Rules of mixtures for Poisson Ratio:
+        mu12_fiber = (self.mu12 - 0.35 * (1 - self.fvf)) / self.fvf
+        self.mu12 = mu12_fiber * fvf + 0.35 * (1 - fvf)
+
+        # Apply change in density due to change in fiber volume fraction
+        rho_fiber = (self.rho - (1 - self.fvf) * self.rho_m) / self.fvf
+        self.rho = fvf * rho_fiber + (1 - fvf) * self.rho_m
+
+        # Register changes in mid, fvf and name.
+        if self.mid < 2000:
+            self.mid = 2000
+        self.mid = self.mid + 1
+        self.fvf = fvf
+        self.name = f"{self.name} FVF_{self.fvf}"
+
+

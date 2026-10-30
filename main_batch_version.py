@@ -2,7 +2,7 @@ import create_directory as cd
 import choose_laminate as cl
 from make_geometry.make_geometry import make_geometry 
 from make_geometry.interfaces import Laminate
-from create_material.create_material import create_material
+from create_material.create_material_main import create_material
 from create_material.interfaces import Material
 from write_bdf.write_bdf import write_bdf
 import shutil
@@ -11,7 +11,7 @@ from start_postprocess.start_postprocess import start_postprocess
 import materials as m
 
 ################ INPUT #################
-workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\06 Results\\"
+workspace = r"C:\Users\juanv\Documents\Work\01 Politecnico de Madrid\99 TFM\12 Results 261016\\"
 optistruct_exec = r'C:\Program Files\Altair\2026.1\hwsolvers\scripts\optistruct.bat'
 material = m.hexply_8552_ud
 
@@ -35,7 +35,7 @@ def create_batch(laminate_choice, defect_type, ply_with_defect_index, defect_wid
         delete_directory(target_directory)
         return
     base_material = create_material(material_dict= material, ply_thickness=flawed_laminate.ply_thickness)
-    filename = write_bdf(flawed_laminate, target_directory, laminate_sequence)
+    filename = write_bdf(flawed_laminate, target_directory, laminate_sequence, base_material)
     ro.run_optistruct_analysis(bdf_file_path= filename,
                                output_dir= target_directory,
                                optistruct_exec= optistruct_exec)

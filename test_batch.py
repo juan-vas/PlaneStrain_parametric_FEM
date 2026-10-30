@@ -13,7 +13,11 @@ from main_batch_version import create_batch
 Laminate = np.arange(1, 7, 1, dtype= int)
 Laminate = [int(x) for x in Laminate]
 defect_type = 0
-defect_width_span = np.arange(0, 2.4, 0.2, dtype= float)
+defect_width_span = np.arange(0.2, 2.4, 0.2, dtype= float)
+
+
+for laminate_choice in Laminate:
+    create_batch(laminate_choice, defect_type, 4, 0)
 
 for laminate_choice in Laminate:
     laminate_sequence = cl.choose_laminate(laminate_choice)
